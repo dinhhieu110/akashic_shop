@@ -1,26 +1,792 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/* ==========================================================================
+   Design tokens
+   Every value here becomes a Tailwind utility (bg-brand, text-ink,
+   rounded-card, shadow-card, font-display, max-w-site, ...).
+   ========================================================================== */
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+@theme {
+  /* Fonts are loaded with next/font in app/layout.tsx. */
+  --font-sans: var(--font-dm-sans), ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", Roboto, Arial, sans-serif;
+  --font-display: var(--font-baloo), var(--font-dm-sans), ui-sans-serif,
+    system-ui, sans-serif;
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  /* Brand: warm marigold, used for primary actions and highlights. */
+  --color-brand-50: #fff8e1;
+  --color-brand-100: #ffefb8;
+  --color-brand-200: #ffe285;
+  --color-brand-300: #ffd452;
+  --color-brand: #ffc530;
+  --color-brand-500: #ffc530;
+  --color-brand-600: #e6a800;
+  --color-brand-700: #b88400;
+  --color-brand-hover: #ffd24d;
+
+  /* Accent: coral-orange, used for badges, eyebrows, link hover and counts. */
+  --color-accent: #ff6b3d;
+  --color-accent-600: #e85124;
+  --color-accent-50: #fff1ec;
+
+  /* Neutrals: cool and navy-tinted rather than pure gray. */
+  --color-ink: #141a33;
+  --color-ink-soft: #2b3150;
+  --color-muted: #646b7d;
+  --color-subtle: #9aa0ae;
+  --color-line: #e7e9f0;
+  --color-line-strong: #d3d6e0;
+  --color-surface: #f5f6fa;
+  --color-canvas: #ffffff;
+  --color-night: #0a0f24;
+  --color-night-soft: #1f2850;
+
+  /* Status */
+  --color-success: #1fa35c;
+  --color-danger: #e0243a;
+
+  /* Type scale. Display sizes are fluid. */
+  --text-2xs: 0.6875rem;
+  --text-2xs--line-height: 1;
+  --text-display: clamp(2.25rem, 1.6rem + 3.2vw, 3.75rem);
+  --text-display--line-height: 1.04;
+  --text-h1: clamp(1.875rem, 1.4rem + 2.4vw, 2.875rem);
+  --text-h1--line-height: 1.08;
+  --text-h2: clamp(1.5rem, 1.2rem + 1.5vw, 2.25rem);
+  --text-h2--line-height: 1.12;
+  --text-h3: clamp(1.1875rem, 1.05rem + 0.6vw, 1.5rem);
+  --text-h3--line-height: 1.2;
+  --text-body: 0.96875rem;
+  --text-body--line-height: 1.7;
+
+  --tracking-display: 0.01em;
+  --tracking-eyebrow: 0.08em;
+  --tracking-nav: 0.04em;
+
+  /* Radius: soft cards, pill controls. */
+  --radius-chip: 0.4375rem;
+  --radius-field: 0.75rem;
+  --radius-card: 1rem;
+  --radius-tile: 1.125rem;
+  --radius-panel: 1.25rem;
+  --radius-banner: 1.875rem;
+
+  /* Shadows: navy-tinted and low-opacity. "press" is the solid 3D ledge under primary buttons. */
+  --shadow-card: 0 6px 22px rgb(17 20 40 / 0.07);
+  --shadow-card-hover: 0 12px 28px rgb(17 20 40 / 0.1);
+  --shadow-raised: 0 10px 30px rgb(17 20 40 / 0.12);
+  --shadow-control: 0 4px 14px rgb(17 20 40 / 0.06);
+  --shadow-bar: 0 -4px 18px rgb(17 20 40 / 0.06);
+  --shadow-press: 0 6px 0 rgb(184 132 0 / 0.35);
+  --shadow-press-hover: 0 9px 0 rgb(184 132 0 / 0.35);
+  --shadow-press-active: 0 2px 0 rgb(184 132 0 / 0.35);
+
+  /* Layout */
+  --container-site: 90rem; /* 1440px */
+  --container-prose: 51.25rem; /* 820px */
+
+  /* Motion */
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-pop: cubic-bezier(0.34, 1.3, 0.64, 1);
+  --animate-marquee: marquee 40s linear infinite;
+
+  @keyframes marquee {
+    to {
+      transform: translateX(-50%);
+    }
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Layout values used by the primitives below, overridable per section. */
+:root {
+  --gutter: 1rem;
+  --section-y: clamp(3rem, 2rem + 4vw, 6rem);
+  --grid-gap: clamp(0.875rem, 0.6rem + 0.9vw, 1.375rem);
+  --header-h: 4rem;
+}
+
+@media (min-width: 48rem) {
+  :root {
+    --gutter: 1.5rem;
+  }
+}
+
+@media (min-width: 80rem) {
+  :root {
+    --gutter: 2rem;
+  }
+}
+
+/* ==========================================================================
+   Base
+   ========================================================================== */
+
+@layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+    scroll-padding-top: var(--header-h);
+  }
+
+  body {
+    background-color: var(--color-canvas);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-size: var(--text-body);
+    line-height: var(--text-body--line-height);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    color: var(--color-ink);
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  ::selection {
+    background-color: var(--color-brand-200);
+    color: var(--color-ink);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-ink);
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+
+  img,
+  video {
+    max-width: 100%;
+    height: auto;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+/* ==========================================================================
+   Typography primitives
+   ========================================================================== */
+
+@utility heading-display {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--text-display);
+  line-height: var(--text-display--line-height);
+  letter-spacing: var(--tracking-display);
+  text-transform: uppercase;
+}
+
+@utility heading-1 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--text-h1);
+  line-height: var(--text-h1--line-height);
+  letter-spacing: var(--tracking-display);
+  text-transform: uppercase;
+}
+
+@utility heading-2 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--text-h2);
+  line-height: var(--text-h2--line-height);
+  letter-spacing: var(--tracking-display);
+  text-transform: uppercase;
+}
+
+@utility heading-3 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--text-h3);
+  line-height: var(--text-h3--line-height);
+  letter-spacing: -0.005em;
+}
+
+/* Small uppercase label above a section title. */
+@utility eyebrow {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: var(--tracking-eyebrow);
+  text-transform: uppercase;
+  color: var(--eyebrow-color, var(--color-accent));
+}
+
+@utility lede {
+  font-size: clamp(1rem, 0.95rem + 0.3vw, 1.125rem);
+  line-height: 1.6;
+  color: var(--color-muted);
+}
+
+/* Long-form copy such as policies and FAQs. */
+@utility prose-body {
+  max-width: var(--container-prose);
+  font-size: var(--text-body);
+  line-height: 1.75;
+  color: rgb(20 26 51 / 0.86);
+
+  & :where(h2, h3, h4) {
+    margin-top: 1.75em;
+    margin-bottom: 0.5em;
+  }
+  & :where(p, ul, ol) {
+    margin-bottom: 1em;
+  }
+  & :where(strong) {
+    color: var(--color-ink);
+  }
+  & :where(a) {
+    color: var(--color-accent);
+    font-weight: 600;
+  }
+  & :where(a:hover) {
+    text-decoration: underline;
+  }
+}
+
+/* ==========================================================================
+   Links
+   ========================================================================== */
+
+/* Inline link: underline grows from the left in brand color on hover. */
+@utility link {
+  background-image: linear-gradient(var(--color-brand), var(--color-brand));
+  background-repeat: no-repeat;
+  background-position: left calc(100% - 1px);
+  background-size: 0% 1.5px;
+  padding-bottom: 1px;
+  transition:
+    background-size 0.22s ease,
+    color 0.18s ease;
+
+  &:hover,
+  &:focus-visible {
+    background-size: 100% 1.5px;
+  }
+}
+
+/* Colored text link for body copy. */
+@utility link-accent {
+  color: var(--color-accent);
+  font-weight: 600;
+  text-underline-offset: 3px;
+
+  &:hover {
+    color: var(--color-accent-600);
+    text-decoration: underline;
+  }
+}
+
+/* Uppercase header nav item with an underline that grows from the center. */
+@utility nav-link {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  padding-block: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: var(--tracking-nav);
+  text-transform: uppercase;
+  color: var(--color-ink);
+  transition: color 0.16s ease;
+
+  &::after {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    bottom: 0.1875rem;
+    height: 1.5px;
+    border-radius: 2px;
+    background: var(--color-brand);
+    transform: scaleX(0);
+    transform-origin: center;
+    transition: transform 0.22s ease;
+  }
+
+  &:hover {
+    color: var(--color-accent);
+  }
+
+  &:hover::after,
+  &[aria-current="page"]::after {
+    transform: scaleX(1);
+  }
+}
+
+/* ==========================================================================
+   Buttons
+   Pill shaped and heavy weight. Primary sits on a solid "press" ledge that
+   lifts on hover and sinks on click.
+   Usage: <button class="btn btn-primary btn-lg">
+   ========================================================================== */
+
+@utility btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  padding: 0.75rem 1.375rem;
+  border: 2px solid transparent;
+  border-radius: 9999px;
+  font-family: var(--font-sans);
+  font-size: 0.9375rem;
+  font-weight: 800;
+  line-height: 1;
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+  user-select: none;
+  transition:
+    transform 0.16s ease,
+    box-shadow 0.16s ease,
+    background-color 0.16s ease,
+    border-color 0.16s ease,
+    color 0.16s ease;
+
+  &:disabled,
+  &[aria-disabled="true"] {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+}
+
+@utility btn-primary {
+  background-color: var(--color-brand);
+  color: var(--color-ink);
+  box-shadow: var(--shadow-press);
+
+  &:hover:not(:disabled),
+  &:focus-visible {
+    background-color: var(--color-brand-hover);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-press-hover);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(2px);
+    box-shadow: var(--shadow-press-active);
+  }
+}
+
+@utility btn-dark {
+  background-color: var(--color-ink);
+  color: #fff;
+
+  &:hover:not(:disabled) {
+    background-color: var(--color-ink-soft);
+    transform: translateY(-2px);
+  }
+}
+
+/* Outlined; fills with ink on hover. Used for "view all" and "load more". */
+@utility btn-outline {
+  background-color: transparent;
+  border-color: var(--color-ink);
+  color: var(--color-ink);
+
+  &:hover:not(:disabled) {
+    background-color: var(--color-ink);
+    color: #fff;
+    transform: translateY(-2px);
+  }
+}
+
+/* Outlined in white for use on photography and dark bands. */
+@utility btn-ghost-light {
+  background-color: transparent;
+  border-color: rgb(255 255 255 / 0.6);
+  color: #fff;
+
+  &:hover:not(:disabled) {
+    background-color: #fff;
+    border-color: #fff;
+    color: var(--color-ink);
+    transform: translateY(-2px);
+  }
+}
+
+/* Quiet secondary action on white. */
+@utility btn-soft {
+  background-color: var(--color-canvas);
+  border-color: rgb(20 26 51 / 0.15);
+  color: var(--color-ink);
+
+  &:hover:not(:disabled) {
+    border-color: var(--color-ink);
+  }
+}
+
+@utility btn-sm {
+  min-height: 2.25rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.8125rem;
+}
+
+@utility btn-lg {
+  min-height: 3.25rem;
+  padding: 1rem 2.25rem;
+  font-size: 0.9375rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+@utility btn-block {
+  width: 100%;
+}
+
+/* Round icon control for carousel arrows, quick view, header icons. */
+@utility icon-btn {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 1px solid var(--color-line);
+  border-radius: 9999px;
+  background-color: var(--color-canvas);
+  color: var(--color-ink);
+  box-shadow: var(--shadow-control);
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    opacity 0.15s ease;
+
+  & > svg {
+    width: 1.125rem;
+    height: 1.125rem;
+  }
+
+  &:hover:not(:disabled) {
+    background-color: var(--color-brand);
+    border-color: var(--color-brand);
+  }
+
+  &:disabled {
+    opacity: 0.35;
+    cursor: default;
+  }
+}
+
+/* Text input with a thick soft border and a brand focus ring. */
+@utility field {
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0.75rem 1rem;
+  border: 2px solid var(--color-line);
+  border-radius: var(--radius-field);
+  background-color: var(--color-canvas);
+  color: var(--color-ink);
+  font-size: 0.9375rem;
+  transition:
+    border-color 0.16s ease,
+    box-shadow 0.16s ease;
+
+  &::placeholder {
+    color: var(--color-subtle);
+  }
+
+  &:focus {
+    outline: none;
+    border-color: var(--color-brand);
+    box-shadow: 0 0 0 3px rgb(255 197 48 / 0.25);
+  }
+}
+
+/* ==========================================================================
+   Surfaces, borders, badges
+   ========================================================================== */
+
+/* White card with a hairline border and soft shadow. */
+@utility card {
+  overflow: hidden;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-card);
+  background-color: var(--color-canvas);
+  box-shadow: var(--shadow-card);
+}
+
+/* Lifts on hover, only where a real pointer can hover. */
+@utility card-interactive {
+  transition:
+    transform 0.3s var(--ease-out-soft),
+    box-shadow 0.3s var(--ease-out-soft);
+
+  @media (hover: hover) and (min-width: 64rem) {
+    &:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-card-hover);
+    }
+  }
+}
+
+/* Larger bordered container for long content (policy, account, summary). */
+@utility panel {
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-panel);
+  background-color: var(--color-canvas);
+  padding: clamp(1.5rem, 1rem + 2vw, 2.75rem);
+  box-shadow: 0 10px 30px rgb(17 20 40 / 0.05);
+}
+
+/* Hairline divider */
+@utility divider {
+  border: 0;
+  border-top: 1px solid var(--color-line);
+}
+
+/* Square image frame on a light surface. The image zooms when a .group
+   ancestor is hovered. */
+@utility media-frame {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 1 / 1;
+  background-color: var(--color-surface);
+
+  & > img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition:
+      transform 0.5s ease,
+      opacity 0.35s ease;
+  }
+
+  @media (hover: hover) {
+    :where(.group):hover & > img {
+      transform: scale(1.05);
+    }
+  }
+}
+
+/* Gradient for text overlaid on imagery (category tiles, banners). */
+@utility scrim-bottom {
+  background: linear-gradient(
+    to top,
+    rgb(10 15 36 / 0.85),
+    rgb(10 15 36 / 0.25) 55%,
+    rgb(10 15 36 / 0)
+  );
+}
+
+@utility badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.625rem;
+  border-radius: 9999px;
+  background-color: var(--color-accent);
+  color: #fff;
+  font-size: var(--text-2xs);
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: 0.02em;
+}
+
+@utility badge-brand {
+  background-color: var(--color-brand);
+  color: var(--color-ink);
+}
+
+@utility badge-success {
+  background-color: var(--color-success);
+  color: #fff;
+}
+
+@utility badge-dark {
+  background-color: var(--color-ink);
+  color: #fff;
+}
+
+/* Small count bubble for cart and wishlist icons. */
+@utility count-dot {
+  display: grid;
+  place-items: center;
+  min-width: 1.125rem;
+  height: 1.125rem;
+  padding-inline: 0.25rem;
+  border-radius: 9999px;
+  background-color: var(--color-accent);
+  color: #fff;
+  font-size: 0.625rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+/* Dark hero band with a soft radial glow, for page headers and promos. */
+@utility surface-night {
+  background: radial-gradient(
+    62.5rem 26.25rem at 50% -20%,
+    var(--color-night-soft) 0%,
+    var(--color-night) 72%
+  );
+  color: #fff;
+  --eyebrow-color: var(--color-brand);
+
+  & :where(h1, h2, h3, h4) {
+    color: #fff;
+  }
+}
+
+/* Marks a block that sits on dark photography: brand-colored eyebrows,
+   white headings. Lighter than surface-night (no background). */
+@utility on-dark {
+  color: #fff;
+  --eyebrow-color: var(--color-brand);
+
+  & :where(h1, h2, h3, h4) {
+    color: #fff;
+  }
+}
+
+/* ==========================================================================
+   Layout primitives
+   ========================================================================== */
+
+/* Centered page column with responsive side gutters. */
+@utility container-site {
+  width: 100%;
+  max-width: var(--container-site);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+@utility container-prose {
+  width: 100%;
+  max-width: calc(var(--container-prose) + var(--gutter) * 2);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+/* Vertical rhythm for page sections. */
+@utility section {
+  padding-block: var(--section-y);
+}
+
+@utility section-tight {
+  padding-block: calc(var(--section-y) * 0.6);
+}
+
+/* Section header: title on the left, actions on the right; stacks on mobile. */
+@utility section-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: clamp(1.25rem, 1rem + 1vw, 2rem);
+}
+
+/* Product grid: 2 / 3 / 4 columns. Override with --cols. */
+@utility grid-products {
+  display: grid;
+  grid-template-columns: repeat(var(--cols, 2), minmax(0, 1fr));
+  gap: var(--grid-gap);
+
+  @media (min-width: 48rem) {
+    --cols: 3;
+  }
+  @media (min-width: 64rem) {
+    --cols: 4;
+  }
+}
+
+/* Auto-fitting grid for tiles and features. Set the minimum width with --min. */
+@utility grid-auto {
+  display: grid;
+  grid-template-columns: repeat(
+    auto-fill,
+    minmax(min(var(--min, 15rem), 100%), 1fr)
+  );
+  gap: var(--grid-gap);
+}
+
+/* Horizontal scroll-snap row that bleeds to the screen edge on mobile.
+   Children set their own width, e.g. w-[44%] md:w-[30%] lg:w-[23%]. */
+@utility scroll-row {
+  display: flex;
+  gap: var(--grid-gap);
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity;
+  scroll-padding-inline: var(--gutter);
+  margin-inline: calc(var(--gutter) * -1);
+  padding-inline: var(--gutter);
+  padding-block: 0.5rem 1.25rem;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  & > * {
+    flex: 0 0 auto;
+    scroll-snap-align: start;
+  }
+}
+
+/* Child of scroll-row that sizes itself so --per items fit per view.
+   Set --per on the row, e.g. [--per:2.2] md:[--per:3] lg:[--per:4]. */
+@utility scroll-item {
+  width: calc((100% - (var(--per, 2.2) - 1) * var(--grid-gap)) / var(--per, 2.2));
+}
+
+/* Vertical stack with a consistent gap. Set the gap with --stack. */
+@utility stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--stack, 1rem);
+}
+
+/* Clamp text to N lines (default 2). Set N with --lines. */
+@utility line-clamp-n {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: var(--lines, 2);
+  overflow: hidden;
+}
+
+/* Fixed bottom bar for mobile, above the iOS safe area. Pair with
+   pb-bottom-bar on <body> so content isn't hidden behind it. */
+@utility bottom-bar {
+  position: fixed;
+  inset-inline: 0;
+  bottom: 0;
+  z-index: 50;
+  height: calc(4rem + env(safe-area-inset-bottom));
+  padding-bottom: env(safe-area-inset-bottom);
+  border-top: 1px solid var(--color-line);
+  background-color: var(--color-canvas);
+  box-shadow: var(--shadow-bar);
+}
+
+@utility pb-bottom-bar {
+  padding-bottom: calc(4rem + env(safe-area-inset-bottom));
 }
